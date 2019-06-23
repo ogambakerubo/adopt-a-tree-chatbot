@@ -4,6 +4,7 @@
   "description": "Messenger Chatbot for the Adopt-a-tree website",
   "main": "index.js",
   "scripts": {
+    "lint": "./node_modules/.bin/eslint",
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
