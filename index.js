@@ -219,13 +219,11 @@ function messageHandler(sender_psid, received_message) {
       "text": INSTRUCTIONS
     };
 
-  }
-
   // Send the response messages
   callSendAPI(sender_psid, response).then(() => {
     callSendAPI(sender_psid, response2)
   });
-
+}
 }
 
 function postbackHandler(sender_psid, received_postback) {
