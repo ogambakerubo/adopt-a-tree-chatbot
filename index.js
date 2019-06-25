@@ -3,15 +3,32 @@
  */
 
 'use strict';
+require("dotenv").config();
+
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
+const GET_STARTED_PAYLOAD = "GET_STARTED_PAYLOAD";
+const FACEBOOK_GRAPH_API = "https://graph.facebook.com/v2.6/";
+const INSTRUCTIONS = "At any time, use the menu provided to navigate through the features.";
+const START_SEARCH_NO = "START_SEARCH_NO";
+const START_SEARCH_YES = "START_SEARCH_YES";
+const MONGODB_URI = process.env.MONGODB_URI;
 
 // Imports dependencies and set up http server
 const
   request = require('request'),
   express = require('express'),
   body_parser = require('body-parser'),
+  mongoose = require('mongoose'),
   app = express(); // Creates express http server
-  app.use(body_parser.json()); // Parses json requests
+app.use(body_parser.json()); // Parses json requests
+
+// eslint-disable-next-line no-unused-vars
+var db = mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useFindAndModify: false
+}); // Connect to MongoDB
+var ChatStatus = require("./models/chatstatus");
 
 // Sets server port and logs message on success
 const server = app.listen(process.env.PORT || 5000, () => {
@@ -29,27 +46,51 @@ app.post('/webhook', (req, res) => {
   // Check the webhook event is from a Page subscription
   if (body.object === 'page') {
 
+    // Iterate over each entry
+    // There may be multiple if batched
+    if (body.entry && body.entry.length <= 0) {
+
+      return;
+
+    }
+
     body.entry.forEach(entry => {
 
       // Gets the body of the webhook event
-      let webhook_event = entry.messaging[0];
-      console.log(webhook_event);
+      let webhook_event = entry.messaging;
 
-      // Get the sender PSID
-      let sender_psid = webhook_event.sender.id;
-      console.log('Sender ID: ' + sender_psid);
+      // Iterate over each webhook_event and handle accordingly
+      webhook_event.forEach(event => {
 
-      // Check if the event is a message or postback and
-      // pass the event to the appropriate handler function
-      if (webhook_event.message) {
+        // Log event
+        console.log({
+          event
+        });
 
-        messageHandler(sender_psid, webhook_event.message);
+        // Get the sender PSID
+        let sender_psid = event.sender.id;
+        console.log('Sender ID: ' + sender_psid);
 
-      } else if (webhook_event.postback) {
+        // Check if the event is a message or postback and
+        // pass the event to the appropriate handler function
+        if (event.message) {
 
-        postbackHandler(sender_psid, webhook_event.postback);
+          if (event.message.quick_reply) {
+            postbackHandler(sender_psid, event.message.quick_reply);
 
-      }
+          } else {
+            messageHandler(sender_psid, event.message);
+
+          }
+
+        } else if (event.postback) {
+
+          postbackHandler(sender_psid, event.postback);
+
+        }
+
+      })
+
 
     });
 
@@ -60,7 +101,7 @@ app.post('/webhook', (req, res) => {
 
     // Return a '404 Not Found' if event is not from a page subscription
     res.sendStatus(404);
-    
+
   }
 
 });
@@ -96,9 +137,77 @@ app.get('/webhook', (req, res) => {
   }
 });
 
+function greetingPostbackHandler(sender_psid) {
+
+  // send request to fb graph api to get client first name
+  request({
+    url: `${FACEBOOK_GRAPH_API}${sender_psid}`,
+    qs: {
+      access_token: process.env.PAGE_ACCESS_TOKEN,
+      fields: "first_name"
+    },
+    method: "GET"
+  }, (error, msgbody) => {
+
+    // Callback function
+    var greeting;
+    if (error) {
+
+      console.log("Error getting user's name: " + error);
+
+    } else {
+      console.log("Body object:", msgbody.body);
+      // Parse client's first name
+      var bodyObj = JSON.parse(msgbody.body);
+      const name = bodyObj.first_name;
+      greeting = "Hi " + name + "! "; // Custom greeting
+
+    }
+    const message = greeting + "Now you can begin the journey of adopting your very own tree 🎉";
+    // Create quick reply options
+    const greetingPayload = {
+      "text": message,
+      "quick_replies": [{
+          "content_type": "text",
+          "title": "Continue",
+          "payload": START_SEARCH_YES
+        },
+        {
+          "content_type": "text",
+          "title": "No, thanks.",
+          "payload": START_SEARCH_NO
+        }
+      ]
+    };
+    // Send the response message to acknowledge the payload
+    callSendAPI(sender_psid, greetingPayload);
+  });
+}
+
+function statusUpdate(sender_psid, status, callbackfn) {
+
+  // Get current conversation stage
+  const query = {
+    user_id: sender_psid
+  };
+  const update = {
+    status: status
+  };
+  const options = {
+    upsert: status === GET_STARTED_PAYLOAD
+  }; // Create new document for new client
+  console.log(options, update, query);
+  // Save the current chat status to MongoDB
+  ChatStatus.findOneAndUpdate(query, update, options).exec(cs => {
+    console.log('update status to db: ', cs);
+    console.log(callbackfn(sender_psid));
+    //callback(sender_psid);
+  });
+}
+
 function messageHandler(sender_psid, received_message) {
 
-  let response;
+  let response, response2;
 
   // Checks if the message contains text
   if (received_message.text) {
@@ -106,71 +215,36 @@ function messageHandler(sender_psid, received_message) {
     // Create the payload for a basic text message, which
     // will be added to the body of our request to the Send API
     response = {
-      "text": `You sent the message: "${received_message.text}". Now send me an attachment!`
-    }
+      "text": `Sorry, but I don't recognise "${received_message.text}".`
+    };
+    response2 = {
+      "text": INSTRUCTIONS
+    };
 
-  } else if (received_message.attachments) {
-
-    // Get the URL of the message attachment
-    let attachment_url = received_message.attachments[0].payload.url;
-    response = {
-      "attachment": {
-        "type": "template",
-        "payload": {
-          "template_type": "generic",
-          "elements": [{
-            "title": "Is this the right picture?",
-            "subtitle": "Tap a button to answer.",
-            "image_url": attachment_url,
-            "buttons": [{
-                "type": "postback",
-                "title": "Yes!",
-                "payload": "yes",
-              },
-              {
-                "type": "postback",
-                "title": "No!",
-                "payload": "no",
-              }
-            ],
-          }]
-        }
-      }
-    }
-
-  }
-
-  // Send the response message
-  callSendAPI(sender_psid, response);
-
+  // Send the response messages
+  callSendAPI(sender_psid, response).then(() => {
+    callSendAPI(sender_psid, response2)
+  });
+}
 }
 
 function postbackHandler(sender_psid, received_postback) {
 
   console.log('ok')
-  let response;
 
   // Get the payload for the postback
   let payload = received_postback.payload;
 
-  // Set the response based on the postback payload
-  if (payload === 'yes') {
+  // Set the response based on the postback payload and update db
+  switch (payload) {
+    case GET_STARTED_PAYLOAD:
+      statusUpdate(sender_psid, payload, greetingPostbackHandler);
+      break;
 
-    response = {
-      "text": "Thanks!"
-    }
-
-  } else if (payload === 'no') {
-
-    response = {
-      "text": "Oops, try sending another image."
-    }
-
+    default:
+      console.log("Unidentified payload type");
+      break;
   }
-
-  // Send the message to acknowledge the postback
-  callSendAPI(sender_psid, response);
-
 }
 
 function callSendAPI(sender_psid, response) {
@@ -185,17 +259,17 @@ function callSendAPI(sender_psid, response) {
 
   // Send the HTTP request to the Messenger Platform
   request({
-    "uri": "https://graph.facebook.com/v2.6/me/messages",
+    "uri": `${FACEBOOK_GRAPH_API}me/messages`,
     "qs": {
       "access_token": PAGE_ACCESS_TOKEN
     },
     "method": "POST",
     "json": request_body
-  }, err => {
+  }, (err, body) => {
 
     if (!err) {
 
-      console.log('message sent!')
+      console.log('message sent:', body)
 
     } else {
 
