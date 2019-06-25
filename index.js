@@ -184,6 +184,216 @@ function greetingPostbackHandler(sender_psid) {
   });
 }
 
+function continuePostbackHandler(sender_psid) {
+
+  // This handles the START_SEARCH_YES payload
+  // Create carousel of generic templates and response messages
+  const mssg = {
+    "text": "We have some great options for you"
+  };
+  const instruct = {
+    "text": INSTRUCTIONS
+  };
+  console.log("continue: CONTINUEPOSTBACKHANDLER");
+  const continuePayload = {
+    "attachment":{
+      "type":"template",
+      "payload":{
+        "template_type":"generic",
+        "elements":[
+          {
+            "title":"Acacia Seedling",
+            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
+            "subtitle":"Location: Haller Park, Mombasa\nUSD $2.00",
+            "default_action": {
+              "type": "web_url",
+              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+              "webview_height_ratio": "tall",
+            },
+            "buttons":[
+              {
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+                "title":"View Website"
+              },{
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+                "title":"Adopt me!"
+              }              
+            ]      
+          }, {
+            "title":"Mahogany Seedling",
+            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
+            "subtitle":"Location: Haller Park, Mombasa\nUSD $1.00",
+            "default_action": {
+              "type": "web_url",
+              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+              "webview_height_ratio": "tall",
+            },
+            "buttons":[
+              {
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+                "title":"View Website"
+              },{
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+                "title":"Adopt me!"
+              }              
+            ]      
+          }, {
+            "title":"Cedar Seedling",
+            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
+            "subtitle":"Location: Naivas Supermarket, Mombasa\nUSD $2.00",
+            "default_action": {
+              "type": "web_url",
+              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+              "webview_height_ratio": "tall",
+            },
+            "buttons":[
+              {
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+                "title":"View Website"
+              },{
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+                "title":"Adopt me!"
+              }              
+            ]      
+          }, {
+            "title":"White Oak Seedling",
+            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
+            "subtitle":"Location: Makupa Round About, Mombasa\nUSD $4.00",
+            "default_action": {
+              "type": "web_url",
+              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+              "webview_height_ratio": "tall",
+            },
+            "buttons":[
+              {
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+                "title":"View Website"
+              },{
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+                "title":"Adopt me!"
+              }              
+            ]      
+          }, {
+            "title":"Blue Spruce Seedling",
+            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
+            "subtitle":"Location: NITA, Mombasa\nUSD $2.00",
+            "default_action": {
+              "type": "web_url",
+              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+              "webview_height_ratio": "tall",
+            },
+            "buttons":[
+              {
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+                "title":"View Website"
+              },{
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+                "title":"Adopt me!"
+              }              
+            ]      
+          }, {
+            "title":"Moringa Tree Seedling",
+            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
+            "subtitle":"Location: Mnazini Majengo, Mombasa\nUSD $4.00",
+            "default_action": {
+              "type": "web_url",
+              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+              "webview_height_ratio": "tall",
+            },
+            "buttons":[
+              {
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+                "title":"View Website"
+              },{
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+                "title":"Adopt me!"
+              }              
+            ]      
+          }, {
+            "title":"Acacia Seedling",
+            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
+            "subtitle":"Location: White House, Mshomoroni\nUSD $2.00",
+            "default_action": {
+              "type": "web_url",
+              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+              "webview_height_ratio": "tall",
+            },
+            "buttons":[
+              {
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+                "title":"View Website"
+              },{
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+                "title":"Adopt me!"
+              }              
+            ]      
+          }, {
+            "title":"Acacia Seedling",
+            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
+            "subtitle":"Location: White House, Mshomoroni\nUSD $2.00",
+            "default_action": {
+              "type": "web_url",
+              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+              "webview_height_ratio": "tall",
+            },
+            "buttons":[
+              {
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+                "title":"View Website"
+              },{
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+                "title":"Adopt me!"
+              }              
+            ]      
+          }, {
+            "title":"Fountain Tree Seedling",
+            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
+            "subtitle":"Location: Mamba Village Nyali, Mombasa\nUSD $5.00",
+            "default_action": {
+              "type": "web_url",
+              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+              "webview_height_ratio": "tall",
+            },
+            "buttons":[
+              {
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+                "title":"View Website"
+              },{
+                "type":"web_url",
+                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
+                "title":"Adopt me!"
+              }              
+            ]      
+          }
+        ]
+      }
+    }
+  };
+
+  // Send the response messages and horizontally scrollable carousel 
+  callSendAPI(sender_psid, instruct);
+  callSendAPI(sender_psid, mssg);
+  callSendAPI(sender_psid, continuePayload);
+
+}
+
 function statusUpdate(sender_psid, status, callbackfn) {
 
   // Get current conversation stage
@@ -200,17 +410,18 @@ function statusUpdate(sender_psid, status, callbackfn) {
   // Save the current chat status to MongoDB
   ChatStatus.findOneAndUpdate(query, update, options).exec(cs => {
     console.log('update status to db: ', cs);
-    console.log(callbackfn(sender_psid));
-    //callback(sender_psid);
+    callbackfn(sender_psid);
   });
 }
 
 function messageHandler(sender_psid, received_message) {
+  // Check message contents
+  console.log('messageHandler message:', JSON.stringify(received_message));
 
   let response, response2;
 
-  // Checks if the message contains text
-  if (received_message.text) {
+  // Checks if the message contains quick_reply property
+  if (!received_message.quick_reply) {
 
     // Create the payload for a basic text message, which
     // will be added to the body of our request to the Send API
@@ -221,11 +432,24 @@ function messageHandler(sender_psid, received_message) {
       "text": INSTRUCTIONS
     };
 
-  // Send the response messages
-  callSendAPI(sender_psid, response).then(() => {
-    callSendAPI(sender_psid, response2)
-  });
-}
+    // Send the response messages
+    callSendAPI(sender_psid, response);
+    callSendAPI(sender_psid, response2);
+
+  }
+  // Checks if the message contains attachments
+  else if (received_message.attachments) {
+    response = {
+      "text": "No attachments please!"
+    };
+    response2 = {
+      "text": INSTRUCTIONS
+    };
+
+    // Send the response messages
+    callSendAPI(sender_psid, response);
+    callSendAPI(sender_psid, response2);
+  }
 }
 
 function postbackHandler(sender_psid, received_postback) {
@@ -239,6 +463,10 @@ function postbackHandler(sender_psid, received_postback) {
   switch (payload) {
     case GET_STARTED_PAYLOAD:
       statusUpdate(sender_psid, payload, greetingPostbackHandler);
+      break;
+
+    case START_SEARCH_YES:
+      statusUpdate(sender_psid, payload, continuePostbackHandler);
       break;
 
     default:
@@ -269,7 +497,7 @@ function callSendAPI(sender_psid, response) {
 
     if (!err) {
 
-      console.log('message sent:', body)
+      console.log('message sent:', body.statusMessage)
 
     } else {
 
