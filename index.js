@@ -6,7 +6,7 @@
 require("dotenv").config();
 
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-const GREETING = "GREETING";
+const GET_STARTED_PAYLOAD = "GET_STARTED_PAYLOAD";
 const FACEBOOK_GRAPH_API = "https://graph.facebook.com/v2.6/";
 const INSTRUCTIONS = "At any time, use the menu provided to navigate through the features.";
 const START_SEARCH_NO = "START_SEARCH_NO";
@@ -25,7 +25,8 @@ app.use(body_parser.json()); // Parses json requests
 // eslint-disable-next-line no-unused-vars
 var db = mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
-  useCreateIndex: true
+  useCreateIndex: true,
+  useFindAndModify: false
 }); // Connect to MongoDB
 var ChatStatus = require("./models/chatstatus");
 
@@ -146,7 +147,7 @@ function greetingPostbackHandler(sender_psid) {
       fields: "first_name"
     },
     method: "GET"
-  }, (error, body) => {
+  }, (error, msgbody) => {
 
     // Callback function
     var greeting;
@@ -155,9 +156,9 @@ function greetingPostbackHandler(sender_psid) {
       console.log("Error getting user's name: " + error);
 
     } else {
-
+      console.log("Body object:", msgbody.body);
       // Parse client's first name
-      var bodyObj = JSON.parse(body);
+      var bodyObj = JSON.parse(msgbody.body);
       const name = bodyObj.first_name;
       greeting = "Hi " + name + "! "; // Custom greeting
 
@@ -183,7 +184,7 @@ function greetingPostbackHandler(sender_psid) {
   });
 }
 
-function statusUpdate(sender_psid, status, callback) {
+function statusUpdate(sender_psid, status, callbackfn) {
 
   // Get current conversation stage
   const query = {
@@ -193,13 +194,14 @@ function statusUpdate(sender_psid, status, callback) {
     status: status
   };
   const options = {
-    upsert: status === GREETING
+    upsert: status === GET_STARTED_PAYLOAD
   }; // Create new document for new client
-
+  console.log(options, update, query);
   // Save the current chat status to MongoDB
   ChatStatus.findOneAndUpdate(query, update, options).exec(cs => {
     console.log('update status to db: ', cs);
-    callback(sender_psid);
+    console.log(callbackfn(sender_psid));
+    //callback(sender_psid);
   });
 }
 
@@ -235,7 +237,7 @@ function postbackHandler(sender_psid, received_postback) {
 
   // Set the response based on the postback payload and update db
   switch (payload) {
-    case GREETING:
+    case GET_STARTED_PAYLOAD:
       statusUpdate(sender_psid, payload, greetingPostbackHandler);
       break;
 
