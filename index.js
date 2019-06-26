@@ -19,6 +19,7 @@ const
   express = require('express'),
   body_parser = require('body-parser'),
   mongoose = require('mongoose'),
+  Promise = require("promise"),
   app = express(); // Creates express http server
 app.use(body_parser.json()); // Parses json requests
 
@@ -28,7 +29,8 @@ var db = mongoose.connect(MONGODB_URI, {
   useCreateIndex: true,
   useFindAndModify: false
 }); // Connect to MongoDB
-var ChatStatus = require("./models/chatstatus");
+var ChatStatus = require("./models/chatstatus"); // Local imports
+var Carousel = require("./store/carousel")
 
 // Sets server port and logs message on success
 const server = app.listen(process.env.PORT || 5000, () => {
@@ -195,203 +197,67 @@ function continuePostbackHandler(sender_psid) {
     "text": INSTRUCTIONS
   };
   console.log("continue: CONTINUEPOSTBACKHANDLER");
-  const continuePayload = {
-    "attachment":{
-      "type":"template",
-      "payload":{
-        "template_type":"generic",
-        "elements":[
-          {
-            "title":"Acacia Seedling",
-            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
-            "subtitle":"Location: Haller Park, Mombasa\nUSD $2.00",
-            "default_action": {
-              "type": "web_url",
-              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-              "webview_height_ratio": "tall",
-            },
-            "buttons":[
-              {
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                "title":"View Website"
-              },{
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-                "title":"Adopt me!"
-              }              
-            ]      
-          }, {
-            "title":"Mahogany Seedling",
-            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
-            "subtitle":"Location: Haller Park, Mombasa\nUSD $1.00",
-            "default_action": {
-              "type": "web_url",
-              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-              "webview_height_ratio": "tall",
-            },
-            "buttons":[
-              {
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                "title":"View Website"
-              },{
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-                "title":"Adopt me!"
-              }              
-            ]      
-          }, {
-            "title":"Cedar Seedling",
-            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
-            "subtitle":"Location: Naivas Supermarket, Mombasa\nUSD $2.00",
-            "default_action": {
-              "type": "web_url",
-              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-              "webview_height_ratio": "tall",
-            },
-            "buttons":[
-              {
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                "title":"View Website"
-              },{
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-                "title":"Adopt me!"
-              }              
-            ]      
-          }, {
-            "title":"White Oak Seedling",
-            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
-            "subtitle":"Location: Makupa Round About, Mombasa\nUSD $4.00",
-            "default_action": {
-              "type": "web_url",
-              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-              "webview_height_ratio": "tall",
-            },
-            "buttons":[
-              {
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                "title":"View Website"
-              },{
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-                "title":"Adopt me!"
-              }              
-            ]      
-          }, {
-            "title":"Blue Spruce Seedling",
-            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
-            "subtitle":"Location: NITA, Mombasa\nUSD $2.00",
-            "default_action": {
-              "type": "web_url",
-              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-              "webview_height_ratio": "tall",
-            },
-            "buttons":[
-              {
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                "title":"View Website"
-              },{
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-                "title":"Adopt me!"
-              }              
-            ]      
-          }, {
-            "title":"Moringa Tree Seedling",
-            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
-            "subtitle":"Location: Mnazini Majengo, Mombasa\nUSD $4.00",
-            "default_action": {
-              "type": "web_url",
-              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-              "webview_height_ratio": "tall",
-            },
-            "buttons":[
-              {
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                "title":"View Website"
-              },{
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-                "title":"Adopt me!"
-              }              
-            ]      
-          }, {
-            "title":"Acacia Seedling",
-            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
-            "subtitle":"Location: White House, Mshomoroni\nUSD $2.00",
-            "default_action": {
-              "type": "web_url",
-              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-              "webview_height_ratio": "tall",
-            },
-            "buttons":[
-              {
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                "title":"View Website"
-              },{
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-                "title":"Adopt me!"
-              }              
-            ]      
-          }, {
-            "title":"Acacia Seedling",
-            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
-            "subtitle":"Location: White House, Mshomoroni\nUSD $2.00",
-            "default_action": {
-              "type": "web_url",
-              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-              "webview_height_ratio": "tall",
-            },
-            "buttons":[
-              {
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                "title":"View Website"
-              },{
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-                "title":"Adopt me!"
-              }              
-            ]      
-          }, {
-            "title":"Fountain Tree Seedling",
-            "image_url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/seedling.jpg",
-            "subtitle":"Location: Mamba Village Nyali, Mombasa\nUSD $5.00",
-            "default_action": {
-              "type": "web_url",
-              "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-              "webview_height_ratio": "tall",
-            },
-            "buttons":[
-              {
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                "title":"View Website"
-              },{
-                "type":"web_url",
-                "url":"https://harrison-gitau.github.io/Adopt-a-Seedling/UI/adoptme.html",
-                "title":"Adopt me!"
-              }              
-            ]      
-          }
-        ]
-      }
-    }
+
+  // Send the response messages asynchronously and horizontally scrollable carousel
+  let one = () => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        callSendAPI(sender_psid, instruct);
+        resolve();
+      }, 500);
+    });
   };
+  
+  let two = () => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        callSendAPI(sender_psid, mssg);
+        resolve();
+      }, 500);
+    });
+  };
+  
+  let three = () => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        callSendAPI(sender_psid, Carousel);
+        resolve();
+      }, 500);
+    });
+  };
+  
+  one().then(() => two()).then(() => three());
 
-  // Send the response messages and horizontally scrollable carousel 
-  callSendAPI(sender_psid, instruct);
-  callSendAPI(sender_psid, mssg);
-  callSendAPI(sender_psid, continuePayload);
+}
 
+function defaultResponse(sender_psid) {
+  
+  console.log("SENDING DEFAULT RESPONSE");
+  // This is the default response
+  const response = {
+    "text": "You can browse our options below"
+  };
+  
+  // Send the response messages asynchronously
+  let one = () => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        callSendAPI(sender_psid, response);
+        resolve();
+      }, 500);
+    });
+  };
+  
+  let two = () => {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        callSendAPI(sender_psid, Carousel);
+        resolve();
+      }, 500);
+    });
+  };
+  
+  one().then(() => two());
 }
 
 function statusUpdate(sender_psid, status, callbackfn) {
@@ -421,7 +287,7 @@ function messageHandler(sender_psid, received_message) {
   let response, response2;
 
   // Checks if the message contains quick_reply property
-  if (!received_message.quick_reply) {
+  if (!received_message.quick_reply && !received_message.attachments) {
 
     // Create the payload for a basic text message, which
     // will be added to the body of our request to the Send API
@@ -432,13 +298,39 @@ function messageHandler(sender_psid, received_message) {
       "text": INSTRUCTIONS
     };
 
-    // Send the response messages
-    callSendAPI(sender_psid, response);
-    callSendAPI(sender_psid, response2);
+    // Send the response messages asynchronously and horizontally scrollable carousel
+    let one = () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          callSendAPI(sender_psid, response);
+          resolve();
+        }, 500);
+      });
+    };
+  
+    let two = () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          callSendAPI(sender_psid, response2);
+          resolve();
+        }, 500);
+      });
+    };
+  
+    let three = () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          defaultResponse(sender_psid);
+          resolve();
+        }, 500);
+      });
+    };
+  
+    one().then(() => two()).then(() => three());
 
   }
   // Checks if the message contains attachments
-  else if (received_message.attachments) {
+  else if (!received_message.quick_reply && received_message.attachments) {
     response = {
       "text": "No attachments please!"
     };
@@ -446,9 +338,35 @@ function messageHandler(sender_psid, received_message) {
       "text": INSTRUCTIONS
     };
 
-    // Send the response messages
-    callSendAPI(sender_psid, response);
-    callSendAPI(sender_psid, response2);
+    // Send the response messages asynchronously and horizontally scrollable carousel
+    let one = () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          callSendAPI(sender_psid, response);
+          resolve();
+        }, 500);
+      });
+    };
+  
+    let two = () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          callSendAPI(sender_psid, response2);
+          resolve();
+        }, 500);
+      });
+    };
+  
+    let three = () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          defaultResponse(sender_psid);
+          resolve();
+        }, 500);
+      });
+    };
+  
+    one().then(() => two()).then(() => three());
   }
 }
 
