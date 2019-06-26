@@ -11,6 +11,8 @@ const FACEBOOK_GRAPH_API = "https://graph.facebook.com/v2.6/";
 const INSTRUCTIONS = "At any time, use the menu provided to navigate through the features.";
 const START_SEARCH_NO = "START_SEARCH_NO";
 const START_SEARCH_YES = "START_SEARCH_YES";
+const CARE_HELP = "CARE_HELP";
+const VISIT_WEBSITE = "VISIT_WEBSITE";
 const MONGODB_URI = process.env.MONGODB_URI;
 
 // Imports dependencies and set up http server
@@ -260,6 +262,75 @@ function defaultResponse(sender_psid) {
   one().then(() => two());
 }
 
+function no_thanksPostbackHandler(sender_psid) {
+  
+  // Handle the START_SEARCH_NO postback
+  console.log("NO THANKS");
+  const message = "That's OK. You can visit our website to make a one time donation or talk to an agent to learn more";
+  // Create quickreply options
+  const no_thanks = {
+    "text": message,
+    "quick_replies": [{
+        "content_type": "text",
+        "title": "Visit Website",
+        "payload": VISIT_WEBSITE
+      },
+      {
+        "content_type": "text",
+        "title": "Talk to agent",
+        "payload": CARE_HELP
+      }
+    ]
+  };
+
+  // Send the response message
+  callSendAPI(sender_psid, no_thanks);
+}
+
+function websitePostbackHandler(sender_psid) {
+  
+  // Handle the VISIT_WEBSITE postback
+  console.log("BYE BYE");
+  // Create single generic template
+  const postcard = {
+    "attachment": {
+      "type": "template",
+      "payload": {
+        "template_type": "generic",
+        "elements": [{
+          "title": "Visit Website",
+          "image_url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/tree.png",
+          "subtitle": "Make a donation for as little as USD $0.50",
+          "default_action": {
+            "type": "web_url",
+            "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+            "webview_height_ratio": "tall",
+          },
+          "buttons": [{
+            "type": "web_url",
+            "url": "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
+            "title": "View Website"
+          }]
+        }]
+      }
+    }
+  };
+
+  // Sender the response message
+  callSendAPI(sender_psid, postcard);
+}
+
+function helplinePostbackHandler(sender_psid) {
+  
+  // Handle the CARE_HELP postback
+  console.log("HANDING OVER...");
+  // Hand over to live agent
+  
+
+  // Send to live agent
+  callSendAPI(sender_psid);
+}
+
 function statusUpdate(sender_psid, status, callbackfn) {
 
   // Get current conversation stage
@@ -385,6 +456,18 @@ function postbackHandler(sender_psid, received_postback) {
 
     case START_SEARCH_YES:
       statusUpdate(sender_psid, payload, continuePostbackHandler);
+      break;
+
+    case START_SEARCH_NO:
+      statusUpdate(sender_psid, payload, no_thanksPostbackHandler);
+      break;
+
+    case VISIT_WEBSITE:
+      statusUpdate(sender_psid, payload, websitePostbackHandler);
+      break;
+
+    case CARE_HELP:
+      statusUpdate(sender_psid, payload, helplinePostbackHandler);
       break;
 
     default:
