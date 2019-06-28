@@ -229,7 +229,13 @@ function continuePostbackHandler(sender_psid) {
 
   one()
     .then(() => two())
-    .then(() => three());
+    .catch(reason =>
+      console.log("Handle rejected promise (" + reason + ") here.")
+    )
+    .then(() => three())
+    .catch(reason =>
+      console.log("Handle rejected promise (" + reason + ") here.")
+    );
 }
 
 function defaultResponse(sender_psid) {
@@ -258,7 +264,11 @@ function defaultResponse(sender_psid) {
     });
   };
 
-  one().then(() => two());
+  one()
+    .then(() => two())
+    .catch(reason =>
+      console.log("Handle rejected promise (" + reason + ") here.")
+    );
 }
 
 function no_thanksPostbackHandler(sender_psid) {
@@ -445,7 +455,13 @@ function messageHandler(sender_psid, received_message) {
 
     one()
       .then(() => two())
-      .then(() => three());
+      .catch(reason =>
+        console.log("Handle rejected promise (" + reason + ") here.")
+      )
+      .then(() => three())
+      .catch(reason =>
+        console.log("Handle rejected promise (" + reason + ") here.")
+      );
   }
   // Checks if the message contains attachments
   else if (!received_message.quick_reply && received_message.attachments) {
@@ -486,7 +502,13 @@ function messageHandler(sender_psid, received_message) {
 
     one()
       .then(() => two())
-      .then(() => three());
+      .catch(reason =>
+        console.log("Handle rejected promise (" + reason + ") here.")
+      )
+      .then(() => three())
+      .catch(reason =>
+        console.log("Handle rejected promise (" + reason + ") here.")
+      );
   }
 }
 
