@@ -5,10 +5,7 @@
 "use strict";
 require("dotenv").config();
 
-const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-const PERSONA_ID = process.env.PERSONA_ID;
 const GET_STARTED_PAYLOAD = "GET_STARTED_PAYLOAD";
-const FACEBOOK_GRAPH_API = "https://graph.facebook.com/v2.6/";
 const INSTRUCTIONS =
   "At any time, use the menu provided to navigate through the features.";
 const START_SEARCH_NO = "START_SEARCH_NO";
@@ -18,26 +15,37 @@ const VISIT_WEBSITE = "VISIT_WEBSITE";
 const ORDER_INQUIRIES = "ORDER_INQUIRIES";
 const BILLING_ISSUES = "BILLING_ISSUES";
 const OTHER = "OTHER";
+/*const ADOPT_A_TREE = "ADOPT_A_TREE";*/
 const MONGODB_URI = process.env.MONGODB_URI;
 
 // Imports dependencies and set up http server
-const request = require("request"),
-  express = require("express"),
+const express = require("express"),
   body_parser = require("body-parser"),
   mongoose = require("mongoose"),
   Promise = require("promise"),
   app = express(); // Creates express http server
 app.use(body_parser.json()); // Parses json requests
 
+// Connect to MongoDB
 // eslint-disable-next-line no-unused-vars
-var db = mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false
-}); // Connect to MongoDB
-var ChatStatus = require("./models/chatstatus"); // Local imports
-var Carousel = require("./store/carousel");
-var handover_protocol = require("./customer_care/helpline");
+var db = mongoose
+  .connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false
+  })
+  .then(() => {
+    console.log("Database connection successful");
+  })
+  .catch(err => {
+    console.error("Database connection error:", err);
+  });
+
+// Local imports
+var ChatStatus = require("./models/chatstatus");
+var defaultResponse = require("./utils/default");
+var handlers = require("./utils/handlers");
+var call = require("./utils/call");
 
 // Sets server port and logs message on success
 const server = app.listen(process.env.PORT || 5000, () => {
@@ -85,9 +93,7 @@ app.post("/webhook", (req, res) => {
         // Iterate over each webhook_event and handle accordingly
         webhook_event.forEach(event => {
           // Log event
-          console.log({
-            event
-          });
+          console.log("Primary webhook event:", { event });
 
           // Get the sender PSID
           let sender_psid = event.sender.id;
@@ -140,256 +146,7 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-function greetingPostbackHandler(sender_psid) {
-  // send request to fb graph api to get client first name
-  request(
-    {
-      url: `${FACEBOOK_GRAPH_API}${sender_psid}`,
-      qs: {
-        access_token: process.env.PAGE_ACCESS_TOKEN,
-        fields: "first_name"
-      },
-      method: "GET"
-    },
-    (error, msgbody) => {
-      // Callback function
-      var greeting;
-      if (error) {
-        console.log("Error getting user's name: " + error);
-      } else {
-        console.log("Body object:", msgbody.body);
-        // Parse client's first name
-        var bodyObj = JSON.parse(msgbody.body);
-        const name = bodyObj.first_name;
-        greeting = "Hi " + name + "! "; // Custom greeting
-      }
-      const message =
-        greeting +
-        "Now you can begin the journey of adopting your very own tree 🎉";
-      // Create quick reply options
-      const greetingPayload = {
-        text: message,
-        quick_replies: [
-          {
-            content_type: "text",
-            title: "Continue",
-            payload: START_SEARCH_YES
-          },
-          {
-            content_type: "text",
-            title: "No, thanks.",
-            payload: START_SEARCH_NO
-          }
-        ]
-      };
-      // Send the response message to acknowledge the payload
-      callSendAPI(sender_psid, greetingPayload);
-    }
-  );
-}
-
-function continuePostbackHandler(sender_psid) {
-  // This handles the START_SEARCH_YES payload
-  // Create carousel of generic templates and response messages
-  const mssg = {
-    text: "We have some great options for you"
-  };
-  const instruct = {
-    text: INSTRUCTIONS
-  };
-  console.log("continue: CONTINUEPOSTBACKHANDLER");
-
-  // Send the response messages asynchronously and horizontally scrollable carousel
-  let one = () => {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        callSendAPI(sender_psid, instruct);
-        resolve();
-      }, 500);
-    });
-  };
-
-  let two = () => {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        callSendAPI(sender_psid, mssg);
-        resolve();
-      }, 500);
-    });
-  };
-
-  let three = () => {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        callSendAPI(sender_psid, Carousel);
-        resolve();
-      }, 500);
-    });
-  };
-
-  one()
-    .then(() => two())
-    .catch(reason =>
-      console.log("Handle rejected promise (" + reason + ") here.")
-    )
-    .then(() => three())
-    .catch(reason =>
-      console.log("Handle rejected promise (" + reason + ") here.")
-    );
-}
-
-function defaultResponse(sender_psid) {
-  console.log("SENDING DEFAULT RESPONSE");
-  // This is the default response
-  const response = {
-    text: "You can browse our options below"
-  };
-
-  // Send the response messages asynchronously
-  let one = () => {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        callSendAPI(sender_psid, response);
-        resolve();
-      }, 500);
-    });
-  };
-
-  let two = () => {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        callSendAPI(sender_psid, Carousel);
-        resolve();
-      }, 500);
-    });
-  };
-
-  one()
-    .then(() => two())
-    .catch(reason =>
-      console.log("Handle rejected promise (" + reason + ") here.")
-    );
-}
-
-function no_thanksPostbackHandler(sender_psid) {
-  // Handle the START_SEARCH_NO postback
-  console.log("NO THANKS");
-  const message =
-    "That's OK. You can still visit our website to make a one time donation or talk to an agent to learn more";
-  // Create quickreply options
-  const no_thanks = {
-    text: message,
-    quick_replies: [
-      {
-        content_type: "text",
-        title: "Visit Website",
-        payload: VISIT_WEBSITE
-      },
-      {
-        content_type: "text",
-        title: "Talk to agent",
-        payload: CARE_HELP
-      }
-    ]
-  };
-
-  // Send the response message
-  callSendAPI(sender_psid, no_thanks);
-}
-
-function websitePostbackHandler(sender_psid) {
-  // Handle the VISIT_WEBSITE postback
-  console.log("SEND TO WEBSITE");
-  // Create single generic template
-  const postcard = {
-    attachment: {
-      type: "template",
-      payload: {
-        template_type: "generic",
-        elements: [
-          {
-            title: "Visit Website",
-            image_url:
-              "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/images/tree.png",
-            subtitle: "Make a donation for as little as USD $0.50",
-            default_action: {
-              type: "web_url",
-              url: "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-              webview_height_ratio: "tall"
-            },
-            buttons: [
-              {
-                type: "web_url",
-                url: "https://harrison-gitau.github.io/Adopt-a-Seedling/UI/",
-                title: "View Website"
-              }
-            ]
-          }
-        ]
-      }
-    }
-  };
-
-  // Sender the response message
-  callSendAPI(sender_psid, postcard);
-}
-
-function helplinePostbackHandler(sender_psid) {
-  // Handle the CARE_HELP postback
-  console.log("HELP CENTRE...");
-  // Hand over to live agent specs
-  let mssg =
-    "Can you please tell me what this is about so I can redirect you to the right team?";
-  // Message with quick reply options
-  const care_help = {
-    text: mssg,
-    quick_replies: [
-      {
-        content_type: "text",
-        title: "Order Inquiries",
-        payload: ORDER_INQUIRIES
-      },
-      {
-        content_type: "text",
-        title: "Billing Issues",
-        payload: BILLING_ISSUES
-      },
-      {
-        content_type: "text",
-        title: "Other",
-        payload: OTHER
-      }
-    ]
-  };
-
-  // Send response message to graph api
-  callSendAPI(sender_psid, care_help);
-}
-
-function handoverPostbackHandler(sender_psid) {
-  // Pass conversation to secondary channel
-  console.log("Passing Thread to Live Agent...");
-  // Page Inbox target id
-  const targetAppId = 263902037430900;
-
-  const metadata = "Vivian from Adopt-A-Tree";
-  const msg = {
-    text: "Hello, I'm Vivian from Adopt-a-Tree. How may I help you?"
-  };
-  const personaId = PERSONA_ID;
-  const response = {
-    recipient: {
-      id: sender_psid
-    },
-    message: msg,
-    persona_id: personaId
-  };
-  handover_protocol.call("/messages", response, () => {});
-
-  handover_protocol.passThreadControl(sender_psid, targetAppId, metadata);
-}
-
-function statusUpdate(sender_psid, status, callbackfn) {
+function statusUpdate(sender_psid, status, callback) {
   // Get current conversation stage
   const query = {
     user_id: sender_psid
@@ -404,116 +161,108 @@ function statusUpdate(sender_psid, status, callbackfn) {
   // Save the current chat status to MongoDB
   ChatStatus.findOneAndUpdate(query, update, options).exec(cs => {
     console.log("update status to db: ", cs);
-    callbackfn(sender_psid);
+    callback(sender_psid);
   });
 }
+
+/*function orderUpdate(sender_psid, callback) {
+  console.log(sender_psid);
+  callback(sender_psid);
+}*/
 
 function messageHandler(sender_psid, received_message) {
   // Check message contents
   console.log("messageHandler message:", JSON.stringify(received_message));
 
   let response, response2;
+  let promises = () => {
+    // Send the response messages asynchronously and horizontally scrollable carousel
+    let one = () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          call("/messages", response, () => {});
+          resolve();
+        }, 500);
+      });
+    };
+
+    let two = () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          call("/messages", response2, () => {});
+          resolve();
+        }, 500);
+      });
+    };
+
+    let three = () => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          defaultResponse(sender_psid);
+          resolve();
+        }, 500);
+      });
+    };
+
+    one()
+      .then(() => two())
+      .catch(reason =>
+        console.log("Handle rejected promise (" + reason + ") here.")
+      )
+      .then(() => three())
+      .catch(reason =>
+        console.log("Handle rejected promise (" + reason + ") here.")
+      );
+  };
 
   // Checks if the message contains quick_reply property
   if (!received_message.quick_reply && !received_message.attachments) {
     // Create the payload for a basic text message, which
     // will be added to the body of our request to the Send API
     response = {
-      text: `Sorry, but I don't recognise "${received_message.text}".`
+      recipient: {
+        id: sender_psid
+      },
+      message: {
+        text: `Sorry, but I don't recognise "${received_message.text}" 😕.`
+      }
     };
     response2 = {
-      text: INSTRUCTIONS
+      recipient: {
+        id: sender_psid
+      },
+      message: {
+        text: INSTRUCTIONS
+      }
     };
 
-    // Send the response messages asynchronously and horizontally scrollable carousel
-    let one = () => {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          callSendAPI(sender_psid, response);
-          resolve();
-        }, 500);
-      });
-    };
-
-    let two = () => {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          callSendAPI(sender_psid, response2);
-          resolve();
-        }, 500);
-      });
-    };
-
-    let three = () => {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          defaultResponse(sender_psid);
-          resolve();
-        }, 500);
-      });
-    };
-
-    one()
-      .then(() => two())
-      .catch(reason =>
-        console.log("Handle rejected promise (" + reason + ") here.")
-      )
-      .then(() => three())
-      .catch(reason =>
-        console.log("Handle rejected promise (" + reason + ") here.")
-      );
+    promises();
   }
   // Checks if the message contains attachments
   else if (!received_message.quick_reply && received_message.attachments) {
     response = {
-      text: "No attachments please!"
+      recipient: {
+        id: sender_psid
+      },
+      message: {
+        text: "No attachments please!"
+      }
     };
     response2 = {
-      text: INSTRUCTIONS
+      recipient: {
+        id: sender_psid
+      },
+      message: {
+        text: INSTRUCTIONS
+      }
     };
 
-    // Send the response messages asynchronously and horizontally scrollable carousel
-    let one = () => {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          callSendAPI(sender_psid, response);
-          resolve();
-        }, 500);
-      });
-    };
-
-    let two = () => {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          callSendAPI(sender_psid, response2);
-          resolve();
-        }, 500);
-      });
-    };
-
-    let three = () => {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          defaultResponse(sender_psid);
-          resolve();
-        }, 500);
-      });
-    };
-
-    one()
-      .then(() => two())
-      .catch(reason =>
-        console.log("Handle rejected promise (" + reason + ") here.")
-      )
-      .then(() => three())
-      .catch(reason =>
-        console.log("Handle rejected promise (" + reason + ") here.")
-      );
+    promises();
   }
 }
 
 function postbackHandler(sender_psid, received_postback) {
-  console.log("ok");
+  console.log("Sorting postback payloads ....");
 
   // Get the payload for the postback
   let payload = received_postback.payload;
@@ -521,62 +270,37 @@ function postbackHandler(sender_psid, received_postback) {
   // Set the response based on the postback payload and update db
   switch (payload) {
     case GET_STARTED_PAYLOAD:
-      statusUpdate(sender_psid, payload, greetingPostbackHandler);
+      statusUpdate(sender_psid, payload, handlers.greetingPostbackHandler);
       break;
 
     case START_SEARCH_YES:
-      statusUpdate(sender_psid, payload, continuePostbackHandler);
+      statusUpdate(sender_psid, payload, handlers.continuePostbackHandler);
       break;
 
     case START_SEARCH_NO:
-      statusUpdate(sender_psid, payload, no_thanksPostbackHandler);
+      statusUpdate(sender_psid, payload, handlers.no_thanksPostbackHandler);
       break;
 
     case VISIT_WEBSITE:
-      statusUpdate(sender_psid, payload, websitePostbackHandler);
+      statusUpdate(sender_psid, payload, handlers.websitePostbackHandler);
       break;
 
     case CARE_HELP:
-      statusUpdate(sender_psid, payload, helplinePostbackHandler);
+      statusUpdate(sender_psid, payload, handlers.helplinePostbackHandler);
       break;
 
     case ORDER_INQUIRIES:
     case BILLING_ISSUES:
     case OTHER:
-      statusUpdate(sender_psid, payload, handoverPostbackHandler);
+      statusUpdate(sender_psid, payload, handlers.handoverPostbackHandler);
       break;
+
+    /*case ADOPT_A_TREE:
+      orderUpdate(sender_psid, handlers.add_to_cartHandler);
+      break;*/
 
     default:
       console.log("Unidentified payload type:", payload);
       break;
   }
-}
-
-function callSendAPI(sender_psid, response) {
-  // Construct the message body
-  let request_body = {
-    recipient: {
-      id: sender_psid
-    },
-    message: response
-  };
-
-  // Send the HTTP request to the Messenger Platform
-  request(
-    {
-      uri: `${FACEBOOK_GRAPH_API}me/messages`,
-      qs: {
-        access_token: PAGE_ACCESS_TOKEN
-      },
-      method: "POST",
-      json: request_body
-    },
-    (err, body) => {
-      if (!err) {
-        console.log("message sent:", body.statusMessage);
-      } else {
-        console.error("Unable to send message:" + err);
-      }
-    }
-  );
 }
