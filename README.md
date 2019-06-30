@@ -27,6 +27,7 @@ VERIFY_TOKEN=
 PERSONA_ID=
 PAGE_ACCESS_TOKEN=
 ```
+
 - Fill in the environment variables with the appropriate info
 - Run `npm install` within the directory
 - Run `npm start` to start the webhook
@@ -35,17 +36,28 @@ PAGE_ACCESS_TOKEN=
 
 ### Starting up the bot
 1. The get started page
-[!alt text](images/65418013_375678703306083_7224173466189037568_n.png)
+
+![Alt text](images/65418013_375678703306083_7224173466189037568_n.png)
+
 2. Welcome message
-[!alt text](images/64957233_391524055040997_4572322183598047232_n.png)
+
+![Alt text](images/64957233_391524055040997_4572322183598047232_n.png)
+
 3. Carousel menu
-[!alt text](images/66109575_378249679483842_6692281516501762048_n.png)
+
+![Alt text](images/66109575_378249679483842_6692281516501762048_n.png)
+
 4. `No thanks` diverts to a prompt to visit the website
-[!alt text](images/65517000_429667014297158_4027181453803520000_n.png)
-4. Speak to a live agent through page inbox
-[!alt text](images/65768934_2462632730423490_5742930964825243648_n.png)
-5. Click done on Page Inbox on the Facebook page to divert sender back to bot
-[!alt text](images/done.png)
+
+![Alt text](images/65517000_429667014297158_4027181453803520000_n.png)
+
+5. Speak to a live agent through page inbox
+
+![Alt text](images/65768934_2462632730423490_5742930964825243648_n.png)
+
+6. Click done on Page Inbox on the Facebook page to divert sender back to bot
+
+![Alt text](images/done.png)
 
 ## Contributors
 @ogambakerubo
@@ -54,4 +66,4 @@ PAGE_ACCESS_TOKEN=
 [MIT](https://choosealicense.com/licenses/mit/)
 
 #### Youtube Video
-[!alt text](https://youtu.be/Y3DTvBaDr0c)
+[link](https://youtu.be/Y3DTvBaDr0c)
