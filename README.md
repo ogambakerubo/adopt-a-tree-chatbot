@@ -36,16 +36,27 @@ PAGE_ACCESS_TOKEN=
 
 ### Starting up the bot
 1. The get started page
+
 ![Alt text](images/65418013_375678703306083_7224173466189037568_n.png)
+
 2. Welcome message
+
 ![Alt text](images/64957233_391524055040997_4572322183598047232_n.png)
+
 3. Carousel menu
+
 ![Alt text](images/66109575_378249679483842_6692281516501762048_n.png)
+
 4. `No thanks` diverts to a prompt to visit the website
+
 ![Alt text](images/65517000_429667014297158_4027181453803520000_n.png)
-4. Speak to a live agent through page inbox
+
+5. Speak to a live agent through page inbox
+
 ![Alt text](images/65768934_2462632730423490_5742930964825243648_n.png)
-5. Click done on Page Inbox on the Facebook page to divert sender back to bot
+
+6. Click done on Page Inbox on the Facebook page to divert sender back to bot
+
 ![Alt text](images/done.png)
 
 ## Contributors
